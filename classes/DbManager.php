@@ -15,6 +15,7 @@
 class DbManager {
   private static $cust_ids = array("Cust123", "Cust123", "Cust123", "Cust123", "Cust234", "Cust234", "Cust345", "Cust345", "Cust456");
   private static $products = array("domain", "hosting", "domain", "email", "domain", "hosting", "pdomain", "hosting", "edomain");
+  private static $domains = array("xyzzy.com", "xyzzy.com", "mydomain.com", "mydomain.com", "plugh.org", "plugh.org", "protected.org", "protected.org", "school.edu");
   private static $dates = array("2020-01-01", "2020-01-01", "2020-03-01", "2020-03-01", "2020-02-01", "2020-11-17", "2020-03-01", "2020-04-01", "2020-04-01");
   private static $durations = array(12, 6, 12, 12, 24, 6, 36, 11, 12);
 
@@ -40,7 +41,7 @@ class DbManager {
           $end_date = $start_date + (self::$durations[$xctr] * (60 * 60 * 24 * 30));
         }
         $rec = array("cust_id" => self::$cust_ids[$xctr], "product" => self::$products[$xctr],
-         "start_date" => strtotime(self::$dates[$xctr]), "duration" => self::$durations[$xctr],
+         "domain" => self::$domains[$xctr], "start_date" => strtotime(self::$dates[$xctr]), "duration" => self::$durations[$xctr],
          "end_date" => $end_date);
         self::$instance->addInitialRecord($rec);
       }
@@ -66,14 +67,33 @@ class DbManager {
     return($ret_set);
   }
 
-  public function findRegisteredDomain($domain) {
-    $retval = false;
-    foreach($this->record_set as $rec) {
-      if (strcasecmp($rec->domain, $domain) == 0) {
-        $retval = true;
+  public function getRecord($params) {
+    $record = array();
+    $bfound = FALSE;
+    foreach($this->record_set as $res) {
+      $keys = array_keys($params);
+      if (count($keys) > 0) {
+        $bfound = TRUE;
+      }
+      foreach($keys as $key) {
+        $cmp_val = $res[$key];
+        if ($key == 'start_date') {
+          if ($params[$key] != $cmp_val) {
+            $bfound = FALSE;
+            break;
+          }
+        }
+        else if (strcasecmp($params[$key], $cmp_val) != 0) {
+          $bfound = FALSE;
+          break;
+        }
+      }
+      if ($bfound) {
+        $record = $res;
+        break;
       }
     }
-    return($retval);
+    return($record);
   }
 
   public function testInit() {

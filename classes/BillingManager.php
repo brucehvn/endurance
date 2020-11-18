@@ -13,5 +13,9 @@ class BillingManager {
     return(true);
   }
 
+  public function ProvisionAccount() {
+    return(true);
+  }
+
 }
  ?>

@@ -1,7 +1,11 @@
 <?php
 class DomainManager {
   public function registerDomain($record)  {
-    return(true); // stub
+    return(TRUE); // stub
+  }
+
+  public function secureDomain($record)  {
+    return(TRUE);
   }
 }
 

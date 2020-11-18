@@ -14,7 +14,7 @@ abstract class aProduct {
     $this->type = $type;
   }
 
-  protected function getType() {
+  public function getType() {
     return($this->type);
   }
 
@@ -22,7 +22,7 @@ abstract class aProduct {
 
   abstract public function loadProduct($cust_id, $product, $domain, $start_date, $duration);
 
-  abstract public function getNextEmailDate();
+  abstract public function getEmailDates($record);
 
   abstract protected function validateInputData($record, $check_start_date);
 

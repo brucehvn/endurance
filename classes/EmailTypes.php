@@ -10,14 +10,14 @@ class EmailTypes {
   const ET_EXPEMAIL = 4;
   const ET_HOSTSTART = 5;
 
-  protected $typeHash = array(ET_NONE => "none", ET_WELCOME => "welcome",
-      ET_EXPDOMAIN => "domainexpire", ET_EXPHOSTING => "hostingexpire", ET_EXPEMAIL => "emailexpire",
-      ET_HOSTSTART => "hostingactive");
+  protected static $typeHash = array(self::ET_NONE => "none", self::ET_WELCOME => "welcome",
+      self::ET_EXPDOMAIN => "domainexpire", self::ET_EXPHOSTING => "hostingexpire",
+      self::ET_EXPEMAIL => "emailexpire", self::ET_HOSTSTART => "hostingactive");
 
   private function __construct() {}
 
   static public function getName($et) {
-    return($typehash[$et]);
+    return(self::$typeHash[$et]);
   }
 }
 

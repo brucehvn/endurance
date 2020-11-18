@@ -1,15 +1,11 @@
 <?php
 
-class DomainProduct extends aProduct {
+class HostingProduct extends aProduct {
 
-  protected $domain_regex_base = '/^(?!\-)(?:(?:[a-zA-Z\d][a-zA-Z\d\-]{0,61})?[a-zA-Z\d]\.){1,126}(?!\d+)';
-
-  protected $valid_domains = array();
+  protected $domain_regex = '/^(?!\-)(?:(?:[a-zA-Z\d][a-zA-Z\d\-]{0,61})?[a-zA-Z\d]\.){1,126}(?!\d+)[a-zA-Z\d]{1,63}$/';
 
   public function __construct() {
-    $this->setType(ProductTypes::PT_DOMAIN);
-    $this->addValidDomain("com");
-    $this->addValidDomain("org");
+    $this->setType(ProductTypes::PT_HOSTING);
   }
 
   public function addProduct($cust_id, $product, $domain, $duration) {
@@ -19,20 +15,21 @@ class DomainProduct extends aProduct {
 
     if ($this->validateInputData($record, false)) {
       $record['start_date'] = time();
-      $record['end_date'] = $record['start_date'] + ($record['duration'] * (60 * 60 * 24 * 365));
+      $record['end_date'] = $record['start_date'] + ($record['duration'] * (60 * 60 * 24 * 30));
 
       $chk_domain = $this->checkDomainAlreadyRegistered($domain);
 
-      if ($chk_domain === FALSE) {
-        $bm = new BillingManager();
+      if ($chk_domain !== FALSE) {
+        if (strcasecmp($chk_domain['cust_id'], $cust_id) == 0) {
+          $bm = new BillingManager();
+          if ($bm->BillCustomerForHosting($record) && $bm->ProvisionAccount($record)) {
+            $dm = new DomainManager();
 
-        if ($bm->BillCustomerForDomain($record)) {
-          $dm = new DomainManager();
-
-          if ($dm->registerDomain($record)) {
-            $al = ActiveList::getInstance();
-            $al->addRecord($record);
-            $retval = TRUE;
+            if ($dm->registerDomain($record)) {
+              $al = ActiveList::getInstance();
+              $al->addRecord($record);
+              $retval = TRUE;
+            }
           }
         }
       }
@@ -59,14 +56,22 @@ class DomainProduct extends aProduct {
 
   public function getEmailDates($record) {
     $ret_arr = array();
+    $start_date = $record['start_date'];
     $end_date = $record['end_date'];
     $curtime = time();
+
+    $welcome_email_date = $start_date + (60 * 60 * 24);
+    if ($curtime < $welcome_email_date) {
+      $ret_arr[] = array('cust_id' => $record['cust_id'], 'product' => $record['product'],
+          'domain' => $record['domain'], 'email_date' => date('Y-m-d', $welcome_email_date),
+          'email_type' => EmailTypes::getName(EmailTypes::ET_WELCOME));
+    }
 
     $exp_email_date = $end_date - (60 * 60 * 24 * 2);
     if ($curtime < $exp_email_date) {
       $ret_arr[] = array('cust_id' => $record['cust_id'], 'product' => $record['product'],
           'domain' => $record['domain'], 'email_date' => date('Y-m-d', $exp_email_date),
-          'email_type' => EmailTypes::getName(EmailTypes::ET_EXPDOMAIN));
+          'email_type' => EmailTypes::getName(EmailTypes::ET_EXPHOSTING));
     }
     return($ret_arr);
   }
@@ -101,19 +106,7 @@ class DomainProduct extends aProduct {
   }
 
   protected function getDomainRegex() {
-    $retstr = $this->domain_regex_base;
-    $tldstr = '(';
-    foreach($this->valid_domains as $tld) {
-      if (strlen($tldstr) > 1) {
-        $tldstr .= '|';
-      }
-      $tldstr .= $tld;
-    }
-
-    if (strlen($tldstr) > 1) {
-      $retstr .= $tldstr . ')';
-    }
-    $retstr .= '$/';
+    $retstr = $this->domain_regex;
     return($retstr);
   }
 }

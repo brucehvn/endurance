@@ -10,14 +10,22 @@ class ProductTypes {
   const PT_EDOMAIN = 4;
   const PT_EMAIL = 5;
 
-  protected $typeHash = array(PT_NONE => "none", PT_DOMAIN => "domain",
-      PT_HOSTING => "hosting", PT_PDOMAIN => "pdomain", PT_EDOMAIN => "edomain",
-      PT_EMAIL => "email");
+  public static $typeHash = array(self::PT_NONE => "none", self::PT_DOMAIN => "domain",
+      self::PT_HOSTING => "hosting", self::PT_PDOMAIN => "pdomain", self::PT_EDOMAIN => "edomain",
+      self::PT_EMAIL => "email");
+
+  public static $classNames = array("none" => "none", 'domain' => "DomainProduct",
+      'hosting' => "HostingProduct", 'pdomain' => "PDomainProduct", 'edomain' => "EDomainProdcut",
+      'email' => "EmailProduct");
 
   private function __construct() {}
 
   static public function getName($pt) {
-    return($typehash[$pt]);
+    return(self::$typehash[$pt]);
+  }
+
+  static public function getClassName($ptname) {
+    return(self::$classNames[$ptname]);
   }
 }
 
